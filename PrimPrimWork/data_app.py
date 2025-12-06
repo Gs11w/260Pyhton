@@ -4,6 +4,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io, base64
@@ -11,7 +12,6 @@ from flask import Flask, render_template, request, jsonify
 
 ###############################
 app = Flask(__name__)
-
 
 df = pd.read_csv("Occupancy_Estimation.csv")
 df["DateTime"] = pd.to_datetime(df["Date"] + " " + df["Time"])
@@ -27,9 +27,10 @@ def df_to_base64(fig):
     plt.close(fig)
     return encoded
 
+
 def compute_pir_latency(i):
     event_time = df.loc[i, "DateTime"]
-    sub = df.loc[i:i+50]
+    sub = df.loc[i:i + 50]
     change = sub[sub["S6_PIR"].diff().fillna(0) != 0]
     if change.empty:
         return np.nan
@@ -38,21 +39,23 @@ def compute_pir_latency(i):
 
 def compute_light_latency(i, threshold=50):
     event_time = df.loc[i, "DateTime"]
-    sub = df.loc[i:i+200]
+    sub = df.loc[i:i + 200]
     change = sub[sub["S1_Light"] > threshold]
     if change.empty:
         return np.nan
     return (change.iloc[0]["DateTime"] - event_time).total_seconds()
 
 
-def compute_sound_latency(i, threshold=5):
+def compute_sound_latency(i, threshold=2.5):
+    print(f"Sound data range: min={df['S1_Sound'].min()}, max={df['S1_Sound'].max()}")
+    print(f"Sound values > 4: {len(df[df['S1_Sound'] > 4])}")
     event_time = df.loc[i, "DateTime"]
-    sub = df.loc[i:i+200]
+    sub = df.loc[i:i + 200]
     change = sub[sub["S1_Sound"] > threshold]
     if change.empty:
         return np.nan
-    return (change.iloc[0]["DateTime"] - event_time).total_seconds()
-
+    latency = (change.iloc[0]["DateTime"] - event_time).total_seconds()
+    return latency if latency >= 0 else np.nan
 
 PIR_latencies = []
 Light_latencies = []
@@ -61,7 +64,7 @@ Latency_times = []
 
 for i in range(1, len(df)):
     now = df.loc[i, "Room_Occupancy_Count"]
-    prev = df.loc[i-1, "Room_Occupancy_Count"]
+    prev = df.loc[i - 1, "Room_Occupancy_Count"]
 
     if now != prev:  # true occupancy change
         PIR_latencies.append(compute_pir_latency(i))
@@ -98,6 +101,7 @@ def plot_latency_timeline():
 
 def plot_latency_comparison():
     sensors = ["PIR", "Light", "Sound"]
+
     means = [
         np.nanmean(PIR_latencies),
         np.nanmean(Light_latencies),
@@ -105,7 +109,7 @@ def plot_latency_comparison():
     ]
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.bar(sensors, means, color=["green", "orange", "blue"])
+    ax.bar(sensors, means, color=["green", "red", "blue"])
 
     ax.set_title("Mean Detection Latency by Sensor Type")
     ax.set_ylabel("Latency (seconds)")
