@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Occupancy Detection Latency Dashboard</title>
+    <style>
+        body { font-family: SansSerif,serif; margin: 40px; }
+        h1 { color: #333; }
+        img { border: 1px solid #ddd; margin-bottom: 20px; }
+        .info-box { padding: 10px; background: #f2f2f2; width: 300px; margin-bottom: 20px; }
+        .label { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h1>Sensor Latency Analysis Dashboard</h1>
+
+<div class="info-box">
+    <p><span class="label">Time Selected:</span> <span id="time">--:--:--</span></p>
+    <p><span class="label">True Occupancy:</span> <span id="true-count">0</span></p>
+</div>
+
+<label for="timeline">Timeline Slider:</label>
+<br>
+<input type="range" id="timeline" min="0" max="{{ max_index }}" value="0" style="width: 80%;">
+
+<h2>PIR vs Ground Truth</h2>
+<img alt="no image" id="pir-vs-occ" width="80%">
+
+<h2>Latency Over Time (PIR vs Light vs Sound)</h2>
+<img alt="no image" id="latency-timeline" width="80%">
+
+<h2>Mean Detection Latency Comparison</h2>
+<img alt="no image" id="latency-comparison" width="80%">
+
+<script>
+document.getElementById("timeline").addEventListener("input", function () {
+    updateData(this.value);
+});
+
+function updateData(value) {
+    fetch(`/get_data?time=${value}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("time").innerText = data.current_time;
+            document.getElementById("true-count").innerText = data.true_count;
+
+            document.getElementById("pir-vs-occ").src =
+                "data:image/png;base64," + data.pir_vs_occ;
+
+            document.getElementById("latency-timeline").src =
+                "data:image/png;base64," + data.latency_timeline;
+
+            document.getElementById("latency-comparison").src =
+                "data:image/png;base64," + data.latency_comparison;
+        });
+}
+
+updateData(0);
+</script>
+
+</body>
+</html>
