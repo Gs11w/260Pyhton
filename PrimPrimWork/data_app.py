@@ -117,13 +117,11 @@ def plot_pir_vs_occ(sub):
     ax.step(sub["DateTime"], sub["Room_Occupancy_Count"], label="True Occupancy", linewidth=2, where="post")
     ax.step(sub["DateTime"], sub["S6_PIR"], label="PIR (S6)", alpha=0.7)
     ax.step(sub["DateTime"], sub["S7_PIR"], label="PIR (S7)", alpha=0.7)
-
     ax.set_xlim(GLOBAL_X_MIN, GLOBAL_X_MAX)
 
     ax.set_title("PIR Activation vs Ground Truth")
     ax.set_ylabel("Count / Binary")
     ax.legend()
-
     ax.xaxis.set_major_formatter(DateFormatter("%y-%m-%d %H:%M:%S"))
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
     fig.tight_layout()
@@ -137,7 +135,6 @@ def plot_latency_timeline():
     ax.plot(PIR_times, PIR_latencies, marker="o", label="PIR")
     ax.plot(Light_times, Light_latencies, marker="o", label="Light")
     ax.plot(Sound_times, Sound_latencies, marker="o", label="Sound")
-
     ax.set_xlim(GLOBAL_X_MIN, GLOBAL_X_MAX)
 
     for cp in True_change_times:
@@ -148,13 +145,11 @@ def plot_latency_timeline():
     ax.set_ylabel("Latency (seconds)")
     ax.grid(True, alpha=0.5)
     ax.legend()
-
     ax.xaxis.set_major_formatter(DateFormatter('%y-%m-%d %H:%M:%S'))
     plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
     fig.tight_layout()
 
     return df_to_base64(fig)
-
 
 
 def plot_latency_comparison():
@@ -168,7 +163,6 @@ def plot_latency_comparison():
 
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.bar(sensors, means, color=["green", "red", "blue"])
-
     ax.set_title("Mean Detection Latency by Sensor Type")
     ax.set_ylabel("Latency (seconds)")
     ax.grid(True, axis='y', alpha=0.3)
@@ -204,12 +198,6 @@ def get_data():
 
     row = df.loc[idx]
     selected_time = row["DateTime"]
-
-    graphs = {
-        "pir_vs_occ": FULL_pir_vs_occ,
-        "latency_timeline": FULL_latency_timeline,
-        "latency_comparison": FULL_latency_comparison
-    }
 
     return jsonify({
         "current_time": selected_time.strftime("%y-%m-%d %H:%M:%S"),
