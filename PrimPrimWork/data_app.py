@@ -7,6 +7,8 @@ import matplotlib
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib.dates import DateFormatter
 import io, base64
 from flask import Flask, render_template, request, jsonify
 
@@ -26,7 +28,7 @@ Light_times = []
 Sound_times = []
 
 
-def df_to_base64(fig):
+def df_to_base64(fig):  # Base 64 for images
     buf = io.BytesIO()
     fig.savefig(buf, format='png', bbox_inches='tight')
     buf.seek(0)
@@ -35,13 +37,19 @@ def df_to_base64(fig):
     return encoded
 
 
-def compute_pir_latency(i):
+def compute_pir_latency(i, window=50):
     event_time = df.loc[i, "DateTime"]
-    sub = df.loc[i:i + 50]
+
+    start = max(0, i - window)
+    end = min(len(df), i + window)
+
+    sub = df.loc[start:end].copy()
+    sub["change"] = sub["S6_PIR"].diff().fillna(0)
     change = sub[sub["S6_PIR"].diff().fillna(0) != 0]
     if change.empty:
         return np.nan
-    return (change.iloc[0]["DateTime"] - event_time).total_seconds()
+    closest = change.iloc[(change["DateTime"] - event_time).abs().argmin()]
+    return abs((closest["DateTime"] - event_time).total_seconds())
 
 
 def compute_light_latency(i, threshold=50):
@@ -62,10 +70,12 @@ def compute_sound_latency(i, threshold=2):
     return (change.iloc[0]["DateTime"] - event_time).total_seconds()
 
 
+# Lists for latency plots
 PIR_latencies = []
 Light_latencies = []
 Sound_latencies = []
 Latency_times = []
+True_change_times = []
 
 for i in range(1, len(df)):
     now = df.loc[i, "Room_Occupancy_Count"]
@@ -76,6 +86,7 @@ for i in range(1, len(df)):
         pir = compute_pir_latency(i)
         light = compute_light_latency(i)
         sound = compute_sound_latency(i)
+        True_change_times.append(event_time)
 
         if not pd.isnull(pir):
             PIR_latencies.append(pir)
@@ -112,11 +123,16 @@ def plot_pir_vs_occ(sub):
     ax.set_title("PIR Activation vs Ground Truth")
     ax.set_ylabel("Count / Binary")
     ax.legend()
+
+    ax.xaxis.set_major_formatter(DateFormatter("%y-%m-%d %H:%M:%S"))
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+    fig.tight_layout()
+
     return df_to_base64(fig)
 
 
 def plot_latency_timeline():
-    fig, ax = plt.subplots(figsize=(12, 5))
+    fig, ax = plt.subplots(figsize=(12, 7))
 
     ax.plot(PIR_times, PIR_latencies, marker="o", label="PIR")
     ax.plot(Light_times, Light_latencies, marker="o", label="Light")
@@ -124,13 +140,21 @@ def plot_latency_timeline():
 
     ax.set_xlim(GLOBAL_X_MIN, GLOBAL_X_MAX)
 
+    for cp in True_change_times:
+        plt.axvline(x=cp, linestyle="-", linewidth=0.5)
+
     ax.set_title("Sensor Detection Latencies Over Time")
     ax.set_xlabel("Time")
     ax.set_ylabel("Latency (seconds)")
-    ax.grid(True, alpha=0.3)
+    ax.grid(True, alpha=0.5)
     ax.legend()
 
+    ax.xaxis.set_major_formatter(DateFormatter('%y-%m-%d %H:%M:%S'))
+    plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+    fig.tight_layout()
+
     return df_to_base64(fig)
+
 
 
 def plot_latency_comparison():
@@ -196,9 +220,9 @@ def get_data():
         "avg_light": float(np.mean([row["S1_Light"], row["S2_Light"], row["S3_Light"], row["S4_Light"]])),
         "avg_sound": float(np.mean([row["S1_Sound"], row["S2_Sound"], row["S3_Sound"], row["S4_Sound"]])),
         "co2": float(row["S5_CO2"]),
-        #"pir_vs_occ": FULL_pir_vs_occ,
-        #"latency_timeline": FULL_latency_timeline,   # shouldn't need bc static
-        #"latency_comparison": FULL_latency_comparison
+        # "pir_vs_occ": FULL_pir_vs_occ,
+        # "latency_timeline": FULL_latency_timeline,   # shouldn't need bc static
+        # "latency_comparison": FULL_latency_comparison
     })
 
 
