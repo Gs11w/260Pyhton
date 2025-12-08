@@ -16,7 +16,7 @@ app = Flask(__name__)
 df = pd.read_csv("Occupancy_Estimation.csv")
 df["DateTime"] = pd.to_datetime(df["Date"] + " " + df["Time"])
 df = df.sort_values("DateTime").reset_index(drop=True)
-df = df.iloc[:4200].copy()
+df = df.iloc[:4201].copy()
 
 GLOBAL_X_MIN = df["DateTime"].min()
 GLOBAL_X_MAX = df["DateTime"].max()
