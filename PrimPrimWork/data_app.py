@@ -46,21 +46,20 @@ def compute_light_latency(i, threshold=50):
     return (change.iloc[0]["DateTime"] - event_time).total_seconds()
 
 
-def compute_sound_latency(i, threshold=2.5):
-    print(f"Sound data range: min={df['S1_Sound'].min()}, max={df['S1_Sound'].max()}")
-    print(f"Sound values > 4: {len(df[df['S1_Sound'] > 4])}")
+def compute_sound_latency(i, threshold=2):
     event_time = df.loc[i, "DateTime"]
-    sub = df.loc[i:i + 200]
+    sub = df.iloc[i:i + 200]
     change = sub[sub["S1_Sound"] > threshold]
     if change.empty:
         return np.nan
-    latency = (change.iloc[0]["DateTime"] - event_time).total_seconds()
-    return latency if latency >= 0 else np.nan
+    return (change.iloc[0]["DateTime"] - event_time).total_seconds()
+
 
 PIR_latencies = []
 Light_latencies = []
 Sound_latencies = []
 Latency_times = []
+Temp_latencies = []
 
 for i in range(1, len(df)):
     now = df.loc[i, "Room_Occupancy_Count"]
@@ -75,8 +74,8 @@ for i in range(1, len(df)):
 
 def plot_pir_vs_occ(sub):
     fig, ax = plt.subplots(figsize=(12, 4))
-    ax.plot(sub["DateTime"], sub["Room_Occupancy_Count"], label="True Occupancy", linewidth=2)
-    ax.plot(sub["DateTime"], sub["S6_PIR"], label="PIR (S6)", alpha=0.7)
+    ax.step(sub["DateTime"], sub["Room_Occupancy_Count"], label="True Occupancy", linewidth=2, where="post")
+    ax.step(sub["DateTime"], sub["S6_PIR"], label="PIR (S6)", alpha=0.7)
     ax.set_title("PIR Activation vs Ground Truth")
     ax.set_ylabel("Count / Binary")
     ax.legend()
@@ -89,7 +88,6 @@ def plot_latency_timeline():
     ax.plot(Latency_times, PIR_latencies, label="PIR", marker="o")
     ax.plot(Latency_times, Light_latencies, label="Light")
     ax.plot(Latency_times, Sound_latencies, label="Sound")
-
     ax.set_title("Sensor Detection Latencies Over Time")
     ax.set_xlabel("Time")
     ax.set_ylabel("Latency (seconds)")
@@ -105,7 +103,7 @@ def plot_latency_comparison():
     means = [
         np.nanmean(PIR_latencies),
         np.nanmean(Light_latencies),
-        np.nanmean(Sound_latencies)
+        np.nanmean(Sound_latencies),
     ]
 
     fig, ax = plt.subplots(figsize=(10, 5))
