@@ -59,7 +59,6 @@ PIR_latencies = []
 Light_latencies = []
 Sound_latencies = []
 Latency_times = []
-Temp_latencies = []
 
 for i in range(1, len(df)):
     now = df.loc[i, "Room_Occupancy_Count"]
@@ -116,6 +115,18 @@ def plot_latency_comparison():
     return df_to_base64(fig)
 
 
+def get_occ_change_point():
+    change_points = []
+    for i in range(1, len(df)):
+        now = df.loc[i, "Room_Occupancy_Count"]
+        prev = df.loc[i - 1, "Room_Occupancy_Count"]
+
+        if now != prev:
+            change_points.append(i)
+
+    return change_points
+
+
 ######### FLASK ROUTES #########
 
 @app.route('/')
@@ -142,6 +153,7 @@ def get_data():
     return jsonify({
         "current_time": selected_time.strftime("%H:%M:%S"),
         "true_count": int(true_count),
+        "change_indices": get_occ_change_point(),
         **graphs
     })
 
