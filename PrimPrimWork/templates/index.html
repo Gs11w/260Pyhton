@@ -1,61 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <title>Occupancy Detection Latency Dashboard</title>
+    <title>Occupancy Detection Dashboard</title>
     <style>
-        body { font-family: SansSerif,serif; margin: 40px; }
-        h1 { color: #333; }
-        img { border: 1px solid #ddd; margin-bottom: 20px; }
-        .info-box { padding: 10px; background: #f2f2f2; width: 300px; margin-bottom: 20px; }
-        .label { font-weight: bold; }
+        body { font-family: Arial,serif; margin: 20px; }
+        #container { display: flex; }
+        #left-panel { flex: 3; margin-right: 20px; }
+        #right-panel { flex: 1; padding: 10px; border: 1px solid #ccc; }
+        img { width: 100%; margin-bottom: 20px; }
+        .sensor-value { font-size: 18px; margin-bottom: 10px; }
     </style>
 </head>
+
 <body>
+    <h1>Occupancy Detection Dashboard</h1>
 
-<h1>Sensor Latency Analysis Dashboard</h1>
+    <div id="container">
+        <div id="left-panel">
+            <input type="range" min="0" max="{{ max_index }}" value="{{ min_index }}" id="timeline_slider" style="width: 100%;">
+            <p>Current Time: <span id="current_time">--:--:--</span></p>
 
-<div class="info-box">
-    <p><span class="label">Time Selected:</span> <span id="time">--:--:--</span></p>
-    <p><span class="label">True Occupancy:</span> <span id="true-count">0</span></p>
-</div>
+            <h2>PIR vs Occupancy</h2>
+            <img id="pir_vs_occ" src="data:image/png;base64,{{ FULL_pir_vs_occ }}">
 
-<label for="timeline">Timeline Slider:</label>
-<br>
-<input type="range" id="timeline" min="0" max="{{ max_index }}" value="0" style="width: 80%;">
+            <h2>Latency Timeline</h2>
+            <img id="latency_timeline" src="data:image/png;base64,{{ FULL_latency_timeline }}">
 
-<h2>PIR vs Ground Truth</h2>
-<img alt="no image" id="pir-vs-occ" width="80%">
+            <h2>Mean Latency Comparison</h2>
+            <img id="latency_comparison" src="data:image/png;base64,{{ FULL_latency_comparison }}">
+        </div>
 
-<h2>Latency Over Time (PIR vs Light vs Sound)</h2>
-<img alt="no image" id="latency-timeline" width="80%">
+        <div id="right-panel">
+            <h2>Sensor Values</h2>
 
-<h2>Mean Detection Latency Comparison</h2>
-<img alt="no image" id="latency-comparison" width="80%">
+            <div class="sensor-value">True Occupancy: <span id="true_count"></span></div>
+            <div class="sensor-value">PIR S6: <span id="s6_pir"></span></div>
+            <div class="sensor-value">PIR S7: <span id="s7_pir"></span></div>
+            <div class="sensor-value">Avg Temp: <span id="avg_temp"></span></div>
+            <div class="sensor-value">Avg Light: <span id="avg_light"></span></div>
+            <div class="sensor-value">Avg Sound: <span id="avg_sound"></span></div>
+            <div class="sensor-value">CO2: <span id="co2"></span></div>
+        </div>
+    </div>
 
 <script>
-document.getElementById("timeline").addEventListener("input", function () {
-    updateData(this.value);
-});
+    const slider = document.getElementById("timeline_slider");
 
-function updateData(value) {
-    fetch(`/get_data?time=${value}`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById("time").innerText = data.current_time;
-            document.getElementById("true-count").innerText = data.true_count;
+    slider.oninput = function() {
+        fetch(`/get_data?time=${slider.value}`)
+            .then(r => r.json())
+            .then(data => {
+                // update text
+                document.getElementById("current_time").textContent = data.current_time;
+                document.getElementById("true_count").textContent = data.true_count;
+                document.getElementById("s6_pir").textContent = data.s6_pir;
+                document.getElementById("s7_pir").textContent = data.s7_pir;
+                document.getElementById("avg_temp").textContent = data.avg_temp.toFixed(2);
+                document.getElementById("avg_light").textContent = data.avg_light.toFixed(2);
+                document.getElementById("avg_sound").textContent = data.avg_sound.toFixed(2);
+                document.getElementById("co2").textContent = data.co2.toFixed(2);
 
-            document.getElementById("pir-vs-occ").src =
-                "data:image/png;base64," + data.pir_vs_occ;
+                // update graphs
+                //document.getElementById("pir_vs_occ").src = "data:image/png;base64," + data.pir_vs_occ;
+                //document.getElementById("latency_timeline").src = "data:image/png;base64," + data.latency_timeline;
+                //document.getElementById("latency_comparison").src = "data:image/png;base64," + data.latency_comparison;
+            });
+    };
 
-            document.getElementById("latency-timeline").src =
-                "data:image/png;base64," + data.latency_timeline;
-
-            document.getElementById("latency-comparison").src =
-                "data:image/png;base64," + data.latency_comparison;
-        });
-}
-
-updateData(0);
+    slider.oninput();
 </script>
 
 </body>
