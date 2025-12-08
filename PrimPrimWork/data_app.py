@@ -220,9 +220,6 @@ def get_data():
         "avg_light": float(np.mean([row["S1_Light"], row["S2_Light"], row["S3_Light"], row["S4_Light"]])),
         "avg_sound": float(np.mean([row["S1_Sound"], row["S2_Sound"], row["S3_Sound"], row["S4_Sound"]])),
         "co2": float(row["S5_CO2"]),
-        # "pir_vs_occ": FULL_pir_vs_occ,
-        # "latency_timeline": FULL_latency_timeline,   # shouldn't need bc static
-        # "latency_comparison": FULL_latency_comparison
     })
 
 
