@@ -182,13 +182,14 @@ visible_idx_max = df.index[df["DateTime"] <= VISIBLE_MAX_TIME][-1]
 
 @app.route('/')
 def index():
-    return render_template('index.html',
-                           max_index=visible_idx_max,
-                           min_index=visible_idx_min,
-                           FULL_pir_vs_occ=FULL_pir_vs_occ,
-                           FULL_latency_timeline=FULL_latency_timeline,
-                           FULL_latency_comparison=FULL_latency_comparison
-                           )
+    return render_template(
+        'index.html',
+        max_index=visible_idx_max,
+        min_index=visible_idx_min,
+        FULL_pir_vs_occ=FULL_pir_vs_occ,
+        FULL_latency_timeline=FULL_latency_timeline,
+        FULL_latency_comparison=FULL_latency_comparison
+    )
 
 
 @app.route("/get_data")
