@@ -7,7 +7,6 @@ import matplotlib
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 from matplotlib.dates import DateFormatter
 import io, base64
 from flask import Flask, render_template, request, jsonify
@@ -113,7 +112,7 @@ for i in range(1, len(df)):
             CO2_latencies.append(co2)
             CO2_times.append(event_time + pd.to_timedelta(co2, unit="s"))
 
-MAX_ROWS = 3000
+'''MAX_ROWS = 3000
 
 PIR_times = PIR_times[:MAX_ROWS]
 Light_times = Light_times[:MAX_ROWS]
@@ -123,7 +122,7 @@ CO2_times = CO2_times[:MAX_ROWS]
 PIR_latencies = PIR_latencies[:MAX_ROWS]
 Light_latencies = Light_latencies[:MAX_ROWS]
 Sound_latencies = Sound_latencies[:MAX_ROWS]
-CO2_latencies = CO2_latencies[:MAX_ROWS]
+CO2_latencies = CO2_latencies[:MAX_ROWS]'''
 
 VISIBLE_MIN_TIME = PIR_times[0]
 VISIBLE_MAX_TIME = PIR_times[-1]
@@ -170,7 +169,7 @@ def plot_co2_vs_occupancy():
 
     return df_to_base64(fig)
 
-###############REMOVE
+
 def plot_light_vs_occupancy():
     fig, ax1 = plt.subplots(figsize=(12, 5))
 
@@ -195,7 +194,6 @@ def plot_light_vs_occupancy():
 
     return df_to_base64(fig)
 
-#############REMOVE
 
 def plot_latency_timeline():
     fig, ax = plt.subplots(figsize=(12, 7))
