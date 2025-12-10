@@ -3,10 +3,10 @@
 <head>
     <title>Occupancy Detection Dashboard</title>
     <style>
-        body { font-family: Arial,serif; margin: 19px; }
+        body { font-family: Arial,serif; margin: 19px; background-color: #ffffff;}
         #container { display: flex; }
         #left-panel { flex: 3; margin-right: 20px; }
-        #right-panel { flex: 1; padding: 10px; border: 1px solid #ccc; }
+        #right-panel { flex: 1; padding: 10px; border: 2px solid #050505; }
         img { width: 100%; margin-bottom: 20px; }
         .sensor-value { font-size: 18px; margin-bottom: 10px; }
     </style>
@@ -28,6 +28,13 @@
 
             <h2>Mean Latency Comparison</h2>
             <img id="latency_comparison" src="data:image/png;base64,{{ FULL_latency_comparison }}">
+
+            <h2>CO2 vs Occ</h2>
+            <img id="CO2_vs_Occ" src="data:image/png;base64, {{ FULL_co2_vs_occ }}">
+
+            <h2>Light vs Occupancy</h2>
+            <img id="Light_vs_Occ" src="data:image/png;base64,{{ FULL_light_vs_occ }}">
+
         </div>
 
         <div id="right-panel">
