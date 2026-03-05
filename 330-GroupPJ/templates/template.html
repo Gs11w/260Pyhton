@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Schedule Finder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f8f9fb;
+            --surface: #ffffff;
+            --border: #e2e5ea;
+            --border-hover: #c8cdd4;
+            --text-primary: #1a1d23;
+            --text-secondary: #5f6672;
+            --text-muted: #8b92a0;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #eff4ff;
+            --accent-border: #bfdbfe;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --danger-border: #fecaca;
+            --success: #16a34a;
+            --success-bg: #f0fdf4;
+            --success-border: #bbf7d0;
+            --success-hover: #dcfce7;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --radius: 10px;
+            --radius-sm: 6px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg); color: var(--text-primary);
+            line-height: 1.5; min-height: 100vh; -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: 780px; margin: 0 auto; padding: 48px 20px 80px; }
+
+        /* ── Header ── */
+        .header { text-align: center; margin-bottom: 32px; }
+        .header-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 48px; height: 48px; background: var(--accent);
+            border-radius: 12px; margin-bottom: 16px;
+        }
+        .header-icon svg { width: 24px; height: 24px; color: #fff; }
+        .header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+        .header p { font-size: 15px; color: var(--text-secondary); }
+        .header p strong { color: var(--text-primary); font-weight: 600; }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-sm);
+        }
+        .card + .card { margin-top: 16px; }
+        .card-title {
+            font-size: 14px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 16px;
+        }
+
+        /* ── Error ── */
+        .error-banner {
+            display: flex; align-items: flex-start; gap: 10px;
+            background: var(--danger-bg); border: 1px solid var(--danger-border);
+            border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px;
+        }
+        .error-banner svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--danger); margin-top: 1px; }
+        .error-banner p { font-size: 14px; color: var(--danger); line-height: 1.5; }
+        .error-banner strong { font-weight: 600; }
+
+        /* ── Form ── */
+        label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+        input[type="text"] {
+            width: 100%; height: 42px; padding: 0 12px; font-size: 14px;
+            font-family: inherit; color: var(--text-primary); background: var(--surface);
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        input[type="text"]:hover { border-color: var(--border-hover); }
+        input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+        input::placeholder { color: var(--text-muted); }
+        .file-input-wrapper { position: relative; margin-top: 4px; }
+        .file-drop-area {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 6px; padding: 20px 16px;
+            border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
+            cursor: pointer; transition: border-color 0.15s, background-color 0.15s;
+        }
+        .file-drop-area:hover { border-color: var(--accent); background-color: var(--accent-light); }
+        .file-drop-area svg { width: 24px; height: 24px; color: var(--text-muted); transition: color 0.15s; }
+        .file-drop-area:hover svg { color: var(--accent); }
+        .file-drop-area span { font-size: 13px; color: var(--text-muted); transition: color 0.15s; }
+        .file-drop-area:hover span { color: var(--accent); }
+        .file-input-wrapper input[type="file"] {
+            position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+        }
+        .add-student-form .form-group { margin-bottom: 16px; }
+        .add-student-form .btn-full { margin-top: 16px; }
+
+        /* ── Duration pills ── */
+        .duration-options-row { display: flex; align-items: flex-end; gap: 12px; }
+        .duration-options { flex: 1; }
+        .duration-options label { margin-bottom: 8px; }
+        .duration-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .duration-pill {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 0 16px; height: 42px;
+            border-radius: 100px; border: 1.5px solid var(--border);
+            background: var(--surface); cursor: pointer;
+            font-size: 13px; font-weight: 500; color: var(--text-muted);
+            font-family: inherit; white-space: nowrap;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+            user-select: none;
+        }
+        .duration-pill:hover { border-color: var(--border-hover); color: var(--text-secondary); }
+        .duration-pill.active {
+            border-color: var(--accent); background: var(--accent-light); color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* ── Pill toggle ── */
+        .pill-toggle {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 0 14px; height: 42px;
+            border-radius: 100px; border: 1.5px solid var(--border);
+            background: var(--surface); cursor: pointer;
+            font-size: 13px; font-weight: 500; color: var(--text-muted);
+            font-family: inherit; white-space: nowrap;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+            user-select: none; flex-shrink: 0;
+        }
+        .pill-toggle:hover { border-color: var(--border-hover); color: var(--text-secondary); }
+        .pill-toggle.active { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+        .pill-toggle svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 6px; height: 40px; padding: 0 18px; font-size: 14px; font-weight: 500;
+            font-family: inherit; border-radius: var(--radius-sm); border: none;
+            cursor: pointer; transition: background-color 0.15s, box-shadow 0.15s, transform 0.1s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); box-shadow: var(--shadow-md); }
+        .btn-primary svg { width: 16px; height: 16px; }
+        .btn-primary:disabled {
+            background: var(--border); color: var(--text-muted);
+            cursor: not-allowed; box-shadow: none; transform: none;
+        }
+        .btn-full { width: 100%; }
+
+        /* ── Student list ── */
+        .student-count { font-size: 13px; color: var(--text-muted); font-weight: 500; margin-bottom: 12px; }
+        .student-list { list-style: none; display: flex; flex-direction: column; }
+        .student-list li {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 0; border-bottom: 1px solid var(--border);
+        }
+        .student-list li:last-child { border-bottom: none; }
+        .student-avatar {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--accent-light); color: var(--accent);
+            font-size: 12px; font-weight: 600; flex-shrink: 0;
+        }
+        .student-name { flex: 1; font-size: 14px; color: var(--text-primary); }
+        .btn-remove {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; padding: 0; background: transparent;
+            border: 1px solid transparent; border-radius: 50%; cursor: pointer;
+            color: var(--text-muted); flex-shrink: 0;
+            transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .btn-remove:hover { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+        .btn-remove svg { width: 14px; height: 14px; }
+
+        /* ── Results ── */
+        .results-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+        .results-header svg { width: 20px; height: 20px; color: var(--success); }
+        .results-header h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+
+        /* ── Block Calendar ── */
+        .section-label {
+            font-size: 12px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 10px;
+        }
+        .block-cal-wrapper { position: relative; overflow-x: auto; }
+        .bc-grid {
+            display: grid; min-width: 480px; border: 1px solid var(--border);
+            border-radius: 8px; overflow: hidden; font-size: 11px; user-select: none;
+        }
+        .bc-corner {
+            background: var(--bg); border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border); padding: 8px 4px; text-align: center;
+            font-weight: 600; color: var(--text-muted); font-size: 10px;
+            text-transform: uppercase; letter-spacing: 0.06em; grid-row: 1;
+        }
+        .bc-day-header {
+            background: var(--bg); border-bottom: 1px solid var(--border);
+            padding: 8px 4px; text-align: center;
+            font-weight: 600; color: var(--text-secondary); font-size: 11px; grid-row: 1;
+        }
+        .bc-day-header:not(:last-child) { border-right: 1px solid #f0f1f4; }
+        .bc-hour-line {
+            position: absolute; left: 0; right: 0;
+            border-top: 1px solid #f0f1f4; pointer-events: none;
+        }
+        .bc-block {
+            position: absolute; left: 3px; right: 3px;
+            background: var(--success-hover); border: 1px solid var(--success-border);
+            border-radius: 4px; cursor: pointer; transition: background 0.15s;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .bc-block:hover { background: var(--success-border); }
+        .bc-block.bc-evening { background: #fffbeb; border-color: #fde68a; }
+        .bc-block.bc-evening:hover { background: #fef3c7; }
+        .bc-block-label {
+            font-size: 10px; font-weight: 600; color: var(--success);
+            text-align: center; line-height: 1.2; padding: 2px 4px; pointer-events: none;
+        }
+        .bc-block.bc-evening .bc-block-label { color: #92400e; }
+
+        /* ── Tooltip ── */
+        .bc-tooltip {
+            position: fixed; transform: translate(-50%, calc(-100% - 8px));
+            background: var(--text-primary); color: #fff;
+            padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
+            white-space: nowrap; pointer-events: none; z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; transition: opacity 0.1s;
+        }
+        .bc-tooltip.visible { opacity: 1; }
+        .bc-tooltip-day { color: #a5f3c8; margin-right: 4px; }
+        .bc-tooltip-duration { color: #93c5fd; margin-left: 6px; font-weight: 400; font-size: 11px; }
+        .bc-tooltip-arrow {
+            position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 5px solid transparent; border-right: 5px solid transparent;
+            border-top: 5px solid var(--text-primary);
+        }
+
+        /* ── No results ── */
+        .no-results {
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center; padding: 24px 16px;
+        }
+        .no-results svg { width: 32px; height: 32px; color: var(--text-muted); margin-bottom: 12px; }
+        .no-results p { font-size: 14px; color: var(--text-secondary); max-width: 340px; }
+
+        @media (max-width: 480px) {
+            .container { padding: 32px 16px 64px; }
+            .card { padding: 20px; }
+            .header h1 { font-size: 21px; }
+            .duration-options-row { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
+                </svg>
+            </div>
+            <h1>Class Schedule Finder</h1>
+            <p>Upload <strong>.ics</strong> files to find common free time.</p>
+        </div>
+
+        <!-- Error -->
+        {% if error %}
+        <div class="error-banner">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
+            </svg>
+            <p><strong>Error:</strong> {{ error }}</p>
+        </div>
+        {% endif %}
+
+        <!-- 1. Add a Student -->
+        <div class="card">
+            <div class="card-title">Add a Student</div>
+            <form method="POST" enctype="multipart/form-data" class="add-student-form">
+                <input type="hidden" name="action" value="upload">
+                <div class="form-group">
+                    <label for="student-name">Student name</label>
+                    <input type="text" id="student-name" name="name" placeholder="e.g. Alex">
+                </div>
+                <div class="form-group">
+                    <label>Calendar file</label>
+                    <div class="file-input-wrapper">
+                        <div class="file-drop-area" id="file-drop-area">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/>
+                            </svg>
+                            <span id="file-label">Click to choose a .ics file</span>
+                        </div>
+                        <input type="file" name="file" accept=".ics" id="file-input">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="add-student-btn" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
+                    Add Student
+                </button>
+            </form>
+        </div>
+
+        <!-- 2. Students -->
+        {% if students %}
+        <div class="card">
+            <div class="card-title">Students</div>
+            <div class="student-count">{{ students|length }} student{{ 's' if students|length != 1 else '' }} added</div>
+            <ul class="student-list">
+                {% for s in students %}
+                <li>
+                    <span class="student-avatar">{{ s.name[0]|upper }}</span>
+                    <span class="student-name">{{ s.name }}</span>
+                    <form method="POST" style="margin:0;">
+                        <input type="hidden" name="action" value="remove">
+                        <input type="hidden" name="index" value="{{ loop.index0 }}">
+                        <button type="submit" class="btn-remove" title="Remove {{ s.name }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- 3. Meeting Options -->
+        <div class="card">
+            <form method="POST" id="compare-form">
+                <input type="hidden" name="action" value="compare">
+                <input type="hidden" name="duration" id="duration-hidden" value="{{ duration }}">
+                <input type="hidden" name="show_evening" id="show-evening-hidden" value="{{ '1' if show_evening else '0' }}">
+                <div class="card-title">Meeting Options</div>
+                <div class="duration-options-row">
+                    <div class="duration-options">
+                        <label>Minimum duration</label>
+                        <div class="duration-pills">
+                            <button type="button" class="duration-pill {% if duration == 50 %}active{% endif %}"
+                                    onclick="setDuration(50, this)">50 min</button>
+                            <button type="button" class="duration-pill {% if duration == 80 %}active{% endif %}"
+                                    onclick="setDuration(80, this)">80 min</button>
+                            <button type="button" class="duration-pill {% if duration == 180 %}active{% endif %}"
+                                    onclick="setDuration(180, this)">180 min</button>
+                        </div>
+                    </div>
+                    <button type="button" id="evening-toggle"
+                            class="pill-toggle {% if show_evening %}active{% endif %}"
+                            onclick="toggleEvening()" title="Include 6:30–9:30 PM evening blocks">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/>
+                        </svg>
+                        Evening
+                    </button>
+                </div>
+                {% if students|length >= 2 %}
+                <button type="submit" class="btn btn-primary btn-full" style="margin-top:16px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                    </svg>
+                    Compare Schedules
+                </button>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- 4. Results -->
+        {% if result is not none %}
+        <div class="card">
+            {% if result %}
+            <div class="results-header">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3>Available Meeting Blocks</h3>
+            </div>
+            <div class="section-label">Week Overview</div>
+            <div class="block-cal-wrapper">
+                <div class="bc-grid" id="bc-grid"></div>
+            </div>
+            <div class="bc-tooltip" id="bc-tooltip">
+                <span class="bc-tooltip-day" id="bc-tooltip-day"></span>
+                <span id="bc-tooltip-time"></span>
+                <span class="bc-tooltip-duration" id="bc-tooltip-duration"></span>
+                <div class="bc-tooltip-arrow"></div>
+            </div>
+            {% else %}
+            <div class="no-results">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 16.318A4.486 4.486 0 0 0 12.016 15a4.486 4.486 0 0 0-3.198 1.318M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z"/>
+                </svg>
+                <p>No common free blocks found. Try including evening classes or adjusting your filters.</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div><!-- /container -->
+
+    <script>
+    // ── Duration pill selection ──
+    var selectedDuration = {{ duration }};
+    function setDuration(mins, btn) {
+        selectedDuration = mins;
+        document.getElementById('duration-hidden').value = mins;
+        document.querySelectorAll('.duration-pill').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+    }
+
+    // ── Evening toggle ──
+    var eveningActive = {{ 'true' if show_evening else 'false' }};
+    function toggleEvening() {
+        eveningActive = !eveningActive;
+        document.getElementById('evening-toggle').classList.toggle('active', eveningActive);
+        document.getElementById('show-evening-hidden').value = eveningActive ? '1' : '0';
+    }
+
+    // ── File input ──
+    var fileInput = document.getElementById('file-input');
+    var fileLabel = document.getElementById('file-label');
+    var dropArea  = document.getElementById('file-drop-area');
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            if (this.files.length > 0) {
+                fileLabel.textContent = this.files[0].name;
+                fileLabel.style.fontWeight = '500';
+                fileLabel.style.color = '#2563eb';
+                dropArea.style.borderColor = '#2563eb';
+                dropArea.style.backgroundColor = '#eff4ff';
+            } else {
+                fileLabel.textContent = 'Click to choose a .ics file';
+                fileLabel.style.fontWeight = '';
+                fileLabel.style.color = '';
+                dropArea.style.borderColor = '';
+                dropArea.style.backgroundColor = '';
+            }
+        });
+    }
+
+    // ── Add Student button gating ──
+    var studentNameInput = document.getElementById('student-name');
+    var addStudentBtn    = document.getElementById('add-student-btn');
+    var hasFile = false;
+    function checkAddStudentReady() {
+        var hasName = studentNameInput.value.trim().length > 0;
+        addStudentBtn.disabled = !(hasName && hasFile);
+    }
+    studentNameInput.addEventListener('input', checkAddStudentReady);
+    fileInput.addEventListener('change', function() {
+        hasFile = this.files.length > 0;
+        checkAddStudentReady();
+    });
+
+    // ── Ping to shut down when tab closes ──
+    setInterval(function() { fetch('/ping', { method: 'POST' }); }, 3000);
+
+    // ── Time-based Block Calendar ──
+    (function () {
+        var gridEl    = document.getElementById('bc-grid');
+        var tooltipEl = document.getElementById('bc-tooltip');
+        if (!gridEl) return;
+
+        var WEEKDAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+        var showEvening = {{ 'true' if show_evening else 'false' }};
+        var CAL_START = 8 * 60;
+        var CAL_END   = showEvening ? (21 * 60 + 30) : (18 * 60 + 30);
+        var HOUR_HEIGHT_PX = 60;
+        var TOTAL_HEIGHT = ((CAL_END - CAL_START) / 60) * HOUR_HEIGHT_PX;
+
+        var hours = [];
+        for (var h = CAL_START; h <= CAL_END; h += 60) { hours.push(h); }
+
+        var resultData = {};
+        {% if result %}
+        {% for day, slots in result.items() %}
+        resultData['{{ day }}'] = [{% for s, e in slots %}'{{ s }}–{{ e }}',{% endfor %}];
+        {% endfor %}
+        {% endif %}
+
+        function toMins(s) {
+            s = s.trim();
+            var ampm = '';
+            if (s.slice(-2) === 'AM' || s.slice(-2) === 'PM') { ampm = s.slice(-2); s = s.slice(0, -2).trim(); }
+            var parts = s.split(':');
+            var hh = parseInt(parts[0], 10);
+            var mm = parts[1] ? parseInt(parts[1], 10) : 0;
+            if (ampm === 'PM' && hh !== 12) hh += 12;
+            if (ampm === 'AM' && hh === 12) hh = 0;
+            if (!ampm && hh >= 1 && hh <= 7) hh += 12;
+            return hh * 60 + mm;
+        }
+        function fmtMins(m) {
+            var h = Math.floor(m / 60), min = m % 60;
+            var suffix = h < 12 ? 'AM' : 'PM', h12 = h % 12 || 12;
+            return h12 + ':' + (min < 10 ? '0' : '') + min + ' ' + suffix;
+        }
+        function fmtDuration(mins) {
+            if (mins < 60) return mins + ' min';
+            var h = Math.floor(mins / 60), m = mins % 60;
+            return m === 0 ? h + ' hr' : h + ' hr ' + m + ' min';
+        }
+        function timeToY(mins) { return ((mins - CAL_START) / 60) * HOUR_HEIGHT_PX; }
+        function durationToH(mins) { return (mins / 60) * HOUR_HEIGHT_PX; }
+
+        gridEl.style.gridTemplateColumns = '64px repeat(' + WEEKDAYS.length + ', 1fr)';
+        gridEl.style.gridTemplateRows = 'auto ' + TOTAL_HEIGHT + 'px';
+
+        // Header
+        var corner = document.createElement('div');
+        corner.className = 'bc-corner';
+        corner.style.gridColumn = '1'; corner.style.gridRow = '1';
+        corner.textContent = 'Time';
+        gridEl.appendChild(corner);
+        WEEKDAYS.forEach(function(day, di) {
+            var h = document.createElement('div');
+            h.className = 'bc-day-header';
+            h.style.gridColumn = String(di + 2); h.style.gridRow = '1';
+            h.textContent = day.slice(0, 3);
+            gridEl.appendChild(h);
+        });
+
+        // Time axis
+        var timeCol = document.createElement('div');
+        timeCol.style.cssText = 'grid-column:1;grid-row:2;position:relative;height:' + TOTAL_HEIGHT + 'px;border-right:1px solid var(--border);background:#fcfcfd;';
+        gridEl.appendChild(timeCol);
+        hours.forEach(function(hMins) {
+            var label = document.createElement('div');
+            var hh = Math.floor(hMins / 60), suffix = hh < 12 ? 'AM' : 'PM', h12 = hh % 12 || 12;
+            label.textContent = h12 + ' ' + suffix;
+            label.style.cssText = 'position:absolute;top:' + timeToY(hMins) + 'px;right:6px;transform:translateY(-50%);font-size:10px;font-weight:500;color:var(--text-muted);white-space:nowrap;line-height:1;';
+            timeCol.appendChild(label);
+        });
+
+        // Day columns
+        WEEKDAYS.forEach(function(day, di) {
+            var col = document.createElement('div');
+            col.style.cssText = 'grid-column:' + (di+2) + ';grid-row:2;position:relative;height:' + TOTAL_HEIGHT + 'px;' + (di < WEEKDAYS.length-1 ? 'border-right:1px solid #f0f1f4;' : '');
+            gridEl.appendChild(col);
+
+            hours.forEach(function(hMins) {
+                if (hMins === CAL_START) return;
+                var line = document.createElement('div');
+                line.className = 'bc-hour-line';
+                line.style.top = timeToY(hMins) + 'px';
+                col.appendChild(line);
+            });
+
+            var slots = resultData[day] || [];
+            slots.forEach(function(slot) {
+                var parts  = slot.split('–');
+                var sMin   = toMins(parts[0]), eMin = toMins(parts[1]);
+                var durMin = eMin - sMin;
+                var topPx = timeToY(sMin), heightPx = durationToH(durMin);
+
+                var block = document.createElement('div');
+                block.className = 'bc-block' + (sMin >= 18*60+30 ? ' bc-evening' : '');
+                block.style.top = topPx + 'px';
+                block.style.height = heightPx + 'px';
+
+                if (heightPx >= 28) {
+                    var lbl = document.createElement('div');
+                    lbl.className = 'bc-block-label';
+                    lbl.textContent = fmtDuration(durMin);
+                    block.appendChild(lbl);
+                }
+
+                (function(d, sl, dur) {
+                    block.addEventListener('mouseenter', function() {
+                        var r = block.getBoundingClientRect();
+                        tooltipEl.style.left = (r.left + r.width/2) + 'px';
+                        tooltipEl.style.top  = (r.top + window.scrollY) + 'px';
+                        document.getElementById('bc-tooltip-day').textContent = d;
+                        document.getElementById('bc-tooltip-time').textContent = sl;
+                        document.getElementById('bc-tooltip-duration').textContent = '· ' + fmtDuration(dur);
+                        tooltipEl.classList.add('visible');
+                    });
+                    block.addEventListener('mouseleave', function() { tooltipEl.classList.remove('visible'); });
+                })(day, fmtMins(sMin) + '–' + fmtMins(eMin), durMin);
+
+                col.appendChild(block);
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

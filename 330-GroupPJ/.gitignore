@@ -1,0 +1,8 @@
+uploads/*
+!uploads/.gitkeep
+__pycache__/
+*.pyc
+*.exe
+dist/
+build/
+*.spec
