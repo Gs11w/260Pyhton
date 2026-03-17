@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename  # Secure filename uploads (from user
 
 # ------- Configuration -------
 if getattr(sys, 'frozen', False):
-    BASE_DIR = sys._MEIPASS
+    BASE_DIR = sys._MEIPASS  # Used for the bundled project to identify the temp folders on computer
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
