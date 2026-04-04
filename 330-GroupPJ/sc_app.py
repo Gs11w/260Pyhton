@@ -262,8 +262,8 @@ def ping():
 def watchdog():
     global last_ping
     while True:
-        time.sleep(3)
-        if time.time() - last_ping > 15:
+        time.sleep(5)
+        if time.time() - last_ping > 30:
             os.kill(os.getpid(), 9)
 
 
