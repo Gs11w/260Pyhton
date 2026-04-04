@@ -1,10 +1,6 @@
 import os
 import sys
 import uuid  # Generate unique iD's
-import time
-import threading  # Used by watchdog
-import webbrowser
-from threading import Timer
 from datetime import datetime, timezone, timedelta
 
 from flask import Flask, request, render_template, redirect, url_for, session
@@ -168,6 +164,11 @@ def init_session():  # Stores user data from each browser session (reopened same
 # ---------------------------------------------------------------------------
 # Route
 # ---------------------------------------------------------------------------
+@app.route("/help")
+def help_page():
+    return render_template("help-page-wrap.html")
+
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -245,37 +246,7 @@ def index():
     )
 
 
-# ---------------------------------------------------------------------------
-# Tab-close watchdog
-# ---------------------------------------------------------------------------
-
-last_ping = time.time()
-
-
-@app.route("/ping", methods=["POST"])
-def ping():
-    global last_ping
-    last_ping = time.time()
-    return "ok"
-
-
-def watchdog():
-    global last_ping
-    while True:
-        time.sleep(5)
-        if time.time() - last_ping > 30:
-            os.kill(os.getpid(), 9)
-
-
-threading.Thread(target=watchdog, daemon=True).start()
-
-
-def open_browser():
-    webbrowser.open_new("http://127.0.0.1:5000/")
-
-
-# can change to not WERKZEUmmmmG
+# can change to not WERKZEUG
 if __name__ == "__main__":
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        Timer(0.8, open_browser).start()
     app.run(debug=True, host="127.0.0.1", port=5000)
+# Later debug=False and host=0.0.0.0 for any machine
