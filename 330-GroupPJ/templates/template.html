@@ -255,8 +255,24 @@
         .no-results svg { width: 32px; height: 32px; color: var(--text-muted); margin-bottom: 12px; }
         .no-results p { font-size: 14px; color: var(--text-secondary); max-width: 340px; }
 
+        .help-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            position: absolute; top: 48px; left: 20px;
+            padding: 6px 12px; background: var(--accent-light);
+            color: var(--accent); border: 1.5px solid var(--accent-border);
+            border-radius: 20px; font-size: 13px; font-weight: 500;
+            text-decoration: none; transition: background 0.15s;
+        }
+        .help-btn:hover { background: #dbeafe; }
+        .help-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: var(--accent); color: #fff;
+            font-size: 11px; font-weight: 700;
+        }
+
         @media (max-width: 480px) {
-            .container { padding: 32px 16px 64px; }
+            .container { max-width: 780px; margin: 0 auto; padding: 48px 20px 80px; position: relative; }
             .card { padding: 20px; }
             .header h1 { font-size: 21px; }
             .duration-options-row { flex-wrap: wrap; }
@@ -274,15 +290,11 @@
                 </svg>
             </div>
             <h1>Class Schedule Finder</h1>
-            <a href="/help" target="_blank" title="How to get your .ics file" style="
-                display: inline-flex; align-items: center; justify-content: center;
-                width: 22px; height: 22px; border-radius: 50%;
-                background: var(--accent-light); color: var(--accent);
-                border: 1.5px solid var(--accent-border);
-                font-size: 12px; font-weight: 700; text-decoration: none;
-                margin-left: 6px; vertical-align: middle;
-            ">?</a>
             <p>Upload <strong>.ics</strong> files to find common free time.</p>
+            <a href="/help" target="_blank" class="help-btn">
+                <span class="help-badge">?</span>
+                Help
+            </a>
         </div>
 
         <!-- Error -->
